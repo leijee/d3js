@@ -1,0 +1,149 @@
+<html>  
+    <head>  
+        <meta charset="utf-8">  
+        <title>Treemap</title>
+        <link rel="stylesheet" href="css/self_animate.css" />
+  		<link rel="stylesheet" href="css/self_d3.css" />
+    </head> 
+	<body>
+		<!--翻牌动画效果-->
+		<div class="flip-container" ontouchstart="this.classList.toggle('hover');">
+			<div class="flipper">
+				<div class="front pic"><span class="name">WebHek<br>
+			歪脖骇客</span></div>
+				<div class="back" style="background: #f8f8f8;">
+					<div class="back-logo"></div>
+					<div class="back-title">@歪脖骇客</div>
+					<p>Mozilla Web Developer, MooTools &amp; jQuery Consultant, MooTools Core Developer, Javascript Fanatic, CSS Tinkerer, PHP Hacker, and web lover.</p>
+				</div>
+			</div>
+		</div>
+		<div class="vertical flip-container" ontouchstart="this.classList.toggle('hover');">
+			<div class="flipper">
+				<div class="front pic"><span class="name">WebHek<br>
+			歪脖骇客</span></div>
+				<div class="back" style="background: #f8f8f8;">
+					<div class="back-logo"></div>
+					<div class="back-title">@歪脖骇客</div>
+					<p>Mozilla Web Developer, MooTools &amp; jQuery Consultant, MooTools Core Developer, Javascript Fanatic, CSS Tinkerer, PHP Hacker, and web lover.</p>
+				</div>
+			</div>
+		</div>
+		
+		<div class="dataMap">
+			<!--treeMap-->
+			
+			<div class="d_treeMap" id="d_treeMap">
+				<div class="colors">
+					<h4>省份列表</h4>
+				</div>
+				<h1>省份GDP信息数据分布</h1>
+			</div>
+			
+			<!---->
+			<div class="d_pie" id="d_pie">
+				<h1>省份GDP信息数据分布</h1>
+			</div>
+		</div>
+		
+		
+	</body>  
+	<script src="lib/d3.js"></script>
+	<script>
+		var dataList = {  
+			    "name": "中国",  
+			    "children":  
+			    [  
+					{"name":"江西省", "gdp":1234,color:"red"},  
+					{"name":"福建省", "gdp":7128,color:"blue"},  
+					{"name":"湖南省", "gdp":4003,color:"green"},  
+					{"name":"湖北省", "gdp":3620,color:"gray"},  
+					{"name":"湖州省", "gdp":1803,color:"lightBlue"},  
+					{"name":"安徽省", "gdp":3147,color:"yellow"},  
+					{"name":"四川省", "gdp":2958,color:"lightGray"},  
+					{"name":"河南省", "gdp":1056,color:"lightGreen"},  
+					{"name":"河北省", "gdp":1021,color:"lightYellow"},  
+					{"name":"山东省", "gdp":3153,color:"lightPink"},  
+					{"name":"广东省", "gdp":11983,color:"Orange"}  
+			    ]
+		};
+		
+		var width = 1280,
+			height = 500;
+		var svg = d3.select("#d_treeMap").append("svg")
+			.attr("width", width)
+			.attr("height", height);
+		//treemap矩形分布树图
+		var treemap = d3.layout.treemap()
+						.size([width, height])
+						.value(function(d){ return d.gdp;});
+		var nodes = treemap.nodes(dataList);
+		var links = treemap.links(nodes);
+		console.log(nodes);
+		console.log(links);
+		
+		var color = d3.scale.category20();
+		var colors =  d3.select(".colors")
+						.selectAll("span")
+						.data(nodes.filter(function(d){
+							console.log(d);
+							console.log(!d.children);
+							return !d.children;
+						}))
+						.enter()
+						.append("span")
+						.attr("class","colorSpan")
+						.style("background",function(d){
+//							return d.color;//自定义颜色
+							return color(d.name); 
+						})
+						.text(function(d){
+							return d.name;
+						});
+		
+		var groups = svg.selectAll("g")
+						.data(nodes.filter(function(d){ return !d.children; }))
+						.enter()
+						.append("g");
+		console.log(groups);
+		var rects = groups.append("rect")
+						.attr("class","nodeRect")
+						.attr("width",function(d){return d.dx})
+						.attr("height",function(d){return d.dy})
+						.attr("x",function(d){return d.x})
+						.attr("y",function(d){return d.y})
+						.attr("text-anchor","middle")
+						.style("fill",function(d,i){
+//							return d.color;//自定义颜色
+							return color(d.name); 
+						})
+						.on("mouseover",function(d){
+							this.style.fill = "gray";
+						})
+						.on("mouseout",function(d){
+							this.style.fill = color(d.name);
+						});
+		var texts = groups.append("text")
+						.attr("class","nodeName")
+						.attr("x",function(d){return (d.x+d.dx/2)})//设置居中
+ 						.attr("y",function(d){return (d.y + d.dy/2)})//设置居中
+						.attr("text-anchor","middle")//设置水平居中
+						.attr("dominant-baseline","central")//设置垂直居中
+						.text(function(d){ 
+							return d.name + " " + d.gdp; 
+						})
+						.on("mouseover",function(d){
+							console.log(this.parentNode.firstChild);
+							this.parentNode.firstChild.style.fill = "gray";
+						})
+						.on("mouseout",function(d){
+							this.parentNode.firstChild.style.fill = color(d.name);
+						});
+						
+						
+		//pie饼状图
+		var piemap = d3.layout.pie()
+						.value(function(d){console.log(d.gdp)});
+		
+	</script>
+</html>  
