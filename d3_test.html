@@ -6,6 +6,7 @@
   		<link rel="stylesheet" href="css/self_d3.css" />
     </head> 
 	<body>
+		
 		<!--翻牌动画效果-->
 		<div class="flip-container" ontouchstart="this.classList.toggle('hover');">
 			<div class="flipper">
@@ -32,7 +33,6 @@
 		
 		<div class="dataMap">
 			<!--treeMap-->
-			
 			<div class="d_treeMap" id="d_treeMap">
 				<div class="colors">
 					<h4>省份列表</h4>
@@ -40,9 +40,24 @@
 				<h1>省份GDP信息数据分布</h1>
 			</div>
 			
-			<!---->
-			<div class="d_pie" id="d_pie">
-				<h1>省份GDP信息数据分布</h1>
+			<!--饼状图-->
+			<div id="pie">
+				<h1>省份GDP信息数据分布所占百分比</h1>
+				<div class="d_pie" id="d_pie">
+					
+				</div>
+				<div class="pieText">
+					<h4>省份</h4>
+				</div>
+			</div>
+			<!--中国地图-->
+			<div id="chinaMap">
+				<h1>中国省份信息数据分布图</h1>
+				<div class="d_map" id="d_map">
+					
+				</div>
+				<div class="mapText">
+				</div>
 			</div>
 		</div>
 		
@@ -54,22 +69,24 @@
 			    "name": "中国",  
 			    "children":  
 			    [  
-					{"name":"江西省", "gdp":1234,color:"red"},  
+					{"name":"江西省", "gdp":3234,color:"red"},  
 					{"name":"福建省", "gdp":7128,color:"blue"},  
 					{"name":"湖南省", "gdp":4003,color:"green"},  
 					{"name":"湖北省", "gdp":3620,color:"gray"},  
-					{"name":"湖州省", "gdp":1803,color:"lightBlue"},  
+					{"name":"广西省", "gdp":1803,color:"lightBlue"},  
 					{"name":"安徽省", "gdp":3147,color:"yellow"},  
 					{"name":"四川省", "gdp":2958,color:"lightGray"},  
-					{"name":"河南省", "gdp":1056,color:"lightGreen"},  
-					{"name":"河北省", "gdp":1021,color:"lightYellow"},  
+					{"name":"河南省", "gdp":2056,color:"lightGreen"},  
+					{"name":"河北省", "gdp":2021,color:"lightYellow"},  
 					{"name":"山东省", "gdp":3153,color:"lightPink"},  
-					{"name":"广东省", "gdp":11983,color:"Orange"}  
+					{"name":"广东省", "gdp":9983,color:"Orange"}  
 			    ]
 		};
 		
 		var width = 1280,
 			height = 500;
+		var filterValue = 0.6;
+		var color = d3.scale.category20();
 		var svg = d3.select("#d_treeMap").append("svg")
 			.attr("width", width)
 			.attr("height", height);
@@ -79,33 +96,25 @@
 						.value(function(d){ return d.gdp;});
 		var nodes = treemap.nodes(dataList);
 		var links = treemap.links(nodes);
-		console.log(nodes);
-		console.log(links);
-		
-		var color = d3.scale.category20();
-		var colors =  d3.select(".colors")
+		var colors = d3.select(".colors")
 						.selectAll("span")
 						.data(nodes.filter(function(d){
-							console.log(d);
-							console.log(!d.children);
 							return !d.children;
 						}))
 						.enter()
 						.append("span")
 						.attr("class","colorSpan")
 						.style("background",function(d){
-//							return d.color;//自定义颜色
-							return color(d.name); 
+							return d.color;//自定义颜色
+//							return color(d.name); 
 						})
 						.text(function(d){
 							return d.name;
 						});
-		
 		var groups = svg.selectAll("g")
 						.data(nodes.filter(function(d){ return !d.children; }))
 						.enter()
 						.append("g");
-		console.log(groups);
 		var rects = groups.append("rect")
 						.attr("class","nodeRect")
 						.attr("width",function(d){return d.dx})
@@ -114,14 +123,15 @@
 						.attr("y",function(d){return d.y})
 						.attr("text-anchor","middle")
 						.style("fill",function(d,i){
-//							return d.color;//自定义颜色
-							return color(d.name); 
+							return d.color;//自定义颜色
+//							return color(d.name); 
 						})
 						.on("mouseover",function(d){
-							this.style.fill = "gray";
+							this.style.fillOpacity = filterValue;
 						})
 						.on("mouseout",function(d){
-							this.style.fill = color(d.name);
+							this.style.fillOpacity = 1;
+//							this.style.fill = color(d.name);
 						});
 		var texts = groups.append("text")
 						.attr("class","nodeName")
@@ -133,17 +143,159 @@
 							return d.name + " " + d.gdp; 
 						})
 						.on("mouseover",function(d){
-							console.log(this.parentNode.firstChild);
-							this.parentNode.firstChild.style.fill = "gray";
+							this.parentNode.firstChild.style.fillOpacity = filterValue;
 						})
 						.on("mouseout",function(d){
-							this.parentNode.firstChild.style.fill = color(d.name);
+							this.parentNode.firstChild.style.fillOpacity = 1;
 						});
 						
 						
 		//pie饼状图
-		var piemap = d3.layout.pie()
-						.value(function(d){console.log(d.gdp)});
+		var _radius = 200,
+			pie_svg,
+			_pie,
+			pie_arc,
+            _innerRadius = 0;
+		var pieList = [];
+		var pieName = [];
+		var pieColor = [];
+		dataList.children.forEach(function(i){
+			pieList.push(i.gdp);
+			pieName.push(i.name);
+			pieColor.push(i.color);
+		});
+		var piemap = d3.layout.pie();
+		setPieSvg(pieList);
+		var newArr = [];
+		setInterval(function(){
+			pieList.map(function(i){
+				i =(i+parseInt(Math.random()*1000))
+				newArr.push(i);
+			});
+			var d_pieNode = document.getElementById("d_pie");
+			d_pieNode.removeChild(d_pieNode.childNodes[1]);
+			setPieSvg(newArr);
+			newArr = [];
+		},10000);
+		//创建pie svg
+		function createPieSvg(){
+			return d3.select("#d_pie").append("svg")
+					.attr("width",400)//svg宽度
+					.attr("height",400);//svg高度
+		}
+		//设置弧生成器
+		function setPieArc(){
+			return d3.svg.arc()  
+	                .outerRadius(_radius)//外半径
+	                .innerRadius(_innerRadius);//内半径
+		}
+		function setSpanText(pieList){
+			d3.select(".pieText")
+					.selectAll("span")
+					.data(piemap(pieList).filter(function(d){
+						return !d.children;
+					}))
+					.enter()
+					.append("span")
+					.attr("class","colorSpan")
+					.style("background",function(d,i){
+						return pieColor[i];//自定义颜色
+//						return color(d); 
+					})
+					.text(function(d,i){
+						return pieName[i];
+					});
+		}
+		//设置pieSvg
+		function setPieSvg(pieList){
+			pie_svg = createPieSvg();
+			pie_arc = setPieArc();
+			_pie = pie_svg.selectAll("g")//创建分组元素
+					.data(piemap(pieList))
+					.enter()
+					.append("g")
+					.attr("transform",function(d){
+						return "translate("+_radius+","+_radius+")";
+					});
+			_pie.append("path")//通过弧生成器绘制路径
+					.attr("stroke","white")
+					.attr("stroke-width","1px")
+				    .attr("fill",function(d,i){
+				    	return pieColor[i];
+//				        return color(i);  
+				    })  
+				    .attr("d",function(d){  
+				        return pie_arc(d);  
+				    })
+				    .on("mouseover",function(){
+				    	this.style.fillOpacity = filterValue;
+				    })
+				    .on("mouseout",function(){
+				    	this.style.fillOpacity = 1;
+				    });
+			_pie.append("text")//添加内容
+				    .attr("transform",function(d){  
+				        return "translate(" + pie_arc.centroid(d) + ")";  
+				    })  
+				    .attr("text-anchor","middle")//设置居中 
+				    .text(function(d){
+				    	var sum = d3.sum(pieList);//d3数组求和方法sum
+				        return parseFloat(d.value/sum*100).toFixed(0)+"%";
+				    })
+				    .on("mouseover",function(d){
+						this.parentNode.firstChild.style.fillOpacity = filterValue;
+					})
+					.on("mouseout",function(d){
+						this.parentNode.firstChild.style.fillOpacity = 1;
+					});
+			setSpanText(pieList);
+		}
+		//地图
 		
+		var _mapSvg;
+		var projection = d3.geo.mercator()
+						    .center([107, 31])
+						    .scale(850)
+					        .translate([500, 500]);
+		var path = d3.geo.path().projection(projection);
+		console.log(path);
+		function setMapSvg(){
+			return d3.select("#d_map").append("svg")
+					.attr("width",1000)
+					.attr("height",1000)
+					.append("g")
+					.attr("transform",function(d){
+						return "translate(0,0)";
+					});
+		}
+		function setMap(){
+			_mapSvg = setMapSvg();
+			d3.json("./lib/chinageo.json",function(error,root){
+				if(error){
+					console.log(error);
+					return null;
+				}
+				console.log(root.features);
+				_mapSvg.selectAll("path")
+						.data(root.features)
+						.enter()
+						.append("path")
+						.attr("stroke","#fff")
+						.attr("stroke-width","1px")
+						.attr("fill",function(d,i){
+							return color(i);
+						})
+						.attr("d",path)
+						.on("mouseover",function(d){
+							console.log(d);
+							this.style.fillOpacity = filterValue;
+						})
+						.on("mouseout",function(d,i){
+							this.style.fillOpacity = 1;
+						})
+			});
+			
+		}
+		setMap();
 	</script>
 </html>  

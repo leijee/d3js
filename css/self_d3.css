@@ -1,3 +1,10 @@
+
+/**
+ * treemap 
+ **/
+h1{
+	font-weight: normal;
+}
 .dataMap{
 	width:100%;
 	height:100%;
@@ -24,7 +31,7 @@
     -ms-transition: -ms-transform 1s ease-out;
 }
 .nodeName {
-	fill: white;
+	fill: #000;
 	font-size: 12px;
 	font-family: "microsoft yahei";
 }
@@ -40,9 +47,64 @@
   	line-height: 20px;
   	font-size: 12px;
   	text-align: center;
-  	color: #fff;
+  	color: #666;
 }
 .colorSpan:after{
 	content: '';
 	display: block;
+}
+/**
+ * pie 
+ **/
+#pie{
+	margin: 0 auto;
+	width: 100%;
+	height: 500px;
+	text-align: center;
+	border: 1px solid #eee;
+}
+#pie .d_pie{
+	position: relative;
+	left:50%;
+	margin-left: -300px;
+	width: 600px;
+	float: left;
+}
+.d_pie g text{
+	font-size: 12px;
+	fill: #000;
+}
+#pie .pieText{
+	position: relative;
+    left: 50%;
+    float: left;
+    margin-left: 0px;
+    padding-top: 20px;
+	width: 100px;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+#pie .pieText span{
+	display: block;
+	font-size: 12px;
+	color: #000;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	padding-left: 10px;
+	padding-right: 10px;
+	margin-bottom: 2px;
+}
+
+/**
+ * 中国地图 chinaMap 
+ **/
+#chinaMap{
+	width: 100%;
+	text-align: center;
+	border: 1px solid #eee;
+	margin-top: 10px;
+}
+#chinaMap .d_map{
+	text-align: center;
 }
